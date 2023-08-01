@@ -14,8 +14,15 @@ baseUrl = "https://yields.llama.fi"
 protocols = requests.get(baseUrl +'/pools')
 
 protocolData = pd.DataFrame.from_dict(protocols.json()["data"])
-protocolDatast = protocolData.loc[(protocolData['stablecoin'] == True) & (protocolData['tvlUsd'] >= 500000)]
-protocolDatast.sort_values(by=['apyPct7D'],ascending=False)
+protocolDatast = protocolData.loc[(protocolData['stablecoin'] == True)]
+tv = st.slider("Choose TVL", protocolDatast.sort_values(by=["tvlUsd"], ascending=False).tvlUsd.iloc[-1],protocolDatast.sort_values(by=["tvlUsd"], ascending=False).tvlUsd.iloc[0])
+selected_chains = st.multiselect("Choose chain", protocolDatast.chain.unique())
+selected_projects = st.multiselect("Choose project", protocolDatast.project.unique())
+
+
+protocolDatast = protocolDatast.loc[ (protocolDatast['tvlUsd'] >= tv) ]
+protocolDatast = protocolDatast[protocolDatast['chain'].isin(selected_chains)]
+protocolDatast = protocolDatast[protocolDatast['project'].isin(selected_projects)]
 
 st.title('DeFi Lama analysis')
 show_data = st.expander("Посмотреть данные")
@@ -23,18 +30,18 @@ show_data = st.expander("Посмотреть данные")
 with show_data:
     st.write(protocolDatast.head(20))
 st.caption('Write smth')
-sel = st.selectbox("Параметр", protocolDatast.columns)
+sel = st.selectbox("Параметр", protocolDatast.columns[3:])
 st.write(protocolDatast.sort_values(by=sel, ascending=False))
 
 st.caption('Then we can check by specific pool and date')
 
-find = st.selectbox("Symbols", protocolDatast.symbol)
+find = st.selectbox("Symbols", protocolDatast.symbol.unique())
 
 pool = protocolDatast.loc[protocolDatast['symbol'] == find]
 
 st.write(pool)
 # Выбор значения из столбца "project"
-find2 = st.selectbox("Project", pool['project'])
+find2 = st.selectbox("Project", pool['project'].unique())
 
 # Фильтрация строк по выбранному значению из столбца "project"
 pool2 = pool.loc[pool['project'] == find2]
@@ -85,5 +92,6 @@ else:
 
     change_in_second_column_rounded = round(change_in_second_column*100, 2)
     st.write(f"Change in {fi} over the selected time range: {change_in_second_column_rounded:.2f}%")
+
 
 
