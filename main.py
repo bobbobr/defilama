@@ -178,4 +178,3 @@ for i in range(new_pool.shape[0]):
             change_in_second_column_rounded = round(change_in_second_column * 100, 2)
             #st.write(f"Change in {fi} over the selected time range is  {change_in_second_column_rounded:.2f}% for {new_pool.values[i][1]} {new_pool.values[i][0]} {new_pool.values[i][2]}")
 
-
