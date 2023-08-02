@@ -68,9 +68,6 @@ remember["tvlPct30D"] = calculate_tvl(protocolDatast.sort_values(by=sel, ascendi
 
 st.write(remember)
 
-st.write(protocolDatast.sort_values(by=sel, ascending=False))
-
-
 st.caption('Then we can check by specific pool and date')
 
 #find = st.selectbox("Symbols", protocolDatast.symbol.unique())
