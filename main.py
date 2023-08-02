@@ -19,7 +19,8 @@ selected_projects = st.multiselect("Choose project", protocolDatast.project.uniq
 protocolDatast = protocolDatast[protocolDatast['chain'].isin(selected_chains)]
 protocolDatast = protocolDatast[protocolDatast['project'].isin(selected_projects)]
 if (len(selected_chains) !=0) & (len(selected_projects) != 0):
-    tv = st.slider("Choose minimum TVL", protocolDatast.sort_values(by=["tvlUsd"], ascending=False).tvlUsd.iloc[-1],protocolDatast.sort_values(by=["tvlUsd"], ascending=False).tvlUsd.iloc[0])
+    tv = st.number_input("Insert a TVL")
+    #tv = st.slider("Choose minimum TVL", protocolDatast.sort_values(by=["tvlUsd"], ascending=False).tvlUsd.iloc[-1],protocolDatast.sort_values(by=["tvlUsd"], ascending=False).tvlUsd.iloc[0])
     protocolDatast = protocolDatast.loc[(protocolDatast['tvlUsd'] >= tv)]
 
     apy = st.slider("Choose minimum APY", protocolDatast.sort_values(by=["apy"], ascending=False).apy.iloc[-1],protocolDatast.sort_values(by=["apy"], ascending=False).apy.iloc[0])
