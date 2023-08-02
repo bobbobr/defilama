@@ -15,22 +15,24 @@ protocols = requests.get(baseUrl +'/pools')
 
 protocolData = pd.DataFrame.from_dict(protocols.json()["data"])
 protocolDatast = protocolData.loc[(protocolData['stablecoin'] == True)]
-tv = st.slider("Choose TVL", protocolDatast.sort_values(by=["tvlUsd"], ascending=False).tvlUsd.iloc[-1],protocolDatast.sort_values(by=["tvlUsd"], ascending=False).tvlUsd.iloc[0])
+
 selected_chains = st.multiselect("Choose chain", protocolDatast.chain.unique())
 selected_projects = st.multiselect("Choose project", protocolDatast.project.unique())
 
 
-protocolDatast = protocolDatast.loc[ (protocolDatast['tvlUsd'] >= tv) ]
 protocolDatast = protocolDatast[protocolDatast['chain'].isin(selected_chains)]
 protocolDatast = protocolDatast[protocolDatast['project'].isin(selected_projects)]
+tv = st.slider("Choose TVL", protocolDatast.sort_values(by=["tvlUsd"], ascending=False).tvlUsd.iloc[-1],protocolDatast.sort_values(by=["tvlUsd"], ascending=False).tvlUsd.iloc[0])
+protocolDatast = protocolDatast.loc[ (protocolDatast['tvlUsd'] >= tv) ]
+
 
 st.title('DeFi Lama analysis')
-show_data = st.expander("Посмотреть данные")
+show_data = st.expander("View Data")
 
 with show_data:
     st.write(protocolDatast.head(20))
 st.caption('Write smth')
-sel = st.selectbox("Параметр", protocolDatast.columns[3:])
+sel = st.selectbox("Options", protocolDatast.columns[3:])
 st.write(protocolDatast.sort_values(by=sel, ascending=False))
 
 st.caption('Then we can check by specific pool and date')
@@ -53,14 +55,18 @@ find3 = st.selectbox("Chain", pool2['chain'])
 # Фильтрация строк по выбранному значению из столбца "chain"
 pool3 = pool2.loc[pool2['chain'] == find3, 'pool']
 
-st.write("Соответствующее значение из столбца 'pool':", pool3.values[0] if not pool3.empty else "Значение не найдено")
+#st.write("Соответствующее значение из столбца 'pool':", pool3.values[0] if not pool3.empty else "Значение не найдено")
 
 baseUrl2 = "https://yields.llama.fi/chart/"
 
 
 df = requests.get(baseUrl2 +pool3.values[0])
 da = pd.DataFrame.from_dict(df.json()["data"])
-st.write(da)
+
+show_data2 = st.expander("View Data")
+
+with show_data2:
+    st.write(da.head(20))
 
 
 start_date = st.date_input("Select start date")
@@ -75,7 +81,7 @@ end_date_str = end_date.strftime("%Y-%m-%d")
 filtered_data = da[(da["timestamp"] >= start_date_str) & (da["timestamp"] <= end_date_str)]
 
 
-fi = st.selectbox("Параметр", da.columns[1:])
+fi = st.selectbox("Options", da.columns[1:])
 if not filtered_data[fi].notna().any():
 
     st.write("No data available for the selected time range.")
@@ -92,6 +98,5 @@ else:
 
     change_in_second_column_rounded = round(change_in_second_column*100, 2)
     st.write(f"Change in {fi} over the selected time range: {change_in_second_column_rounded:.2f}%")
-
 
 
