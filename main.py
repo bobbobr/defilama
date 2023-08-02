@@ -9,6 +9,9 @@ baseUrl = "https://yields.llama.fi"
 #protocols = requests.get(baseUrl + '/protocols')
 protocols = requests.get(baseUrl +'/pools')
 
+#stablecoin = st.checkbox('Only stablecoins')
+
+
 protocolData = pd.DataFrame.from_dict(protocols.json()["data"])
 protocolDatast = protocolData.loc[(protocolData['stablecoin'] == True)]
 
@@ -36,7 +39,37 @@ with show_data:
     st.write(protocolDatast.head(20))
 
 sel = st.selectbox("Options", protocolDatast.columns[3:])
+
+def calculate_tvl(data, start, end):
+    change_tvl = []
+    for i in range(data.pool.shape[0]):
+        baseUrl3 = "https://yields.llama.fi/chart/"
+        df3 = requests.get(baseUrl3 + data.pool.iloc[i])
+        da = pd.DataFrame.from_dict(df3.json()["data"])
+        if len(da["tvlUsd"].iloc[:])>(end-start):
+            #filtered_data = da[(da["timestamp"] >= start) & (da["timestamp"] <= end)]
+                # Calculate the change in the second column over the selected time range
+            change_in_second_column = da["tvlUsd"].iloc[end] / da["tvlUsd"].iloc[start] - 1
+            change_tvl.append(round(change_in_second_column * 100, 2))
+        else:
+            change_tvl.append(0)
+
+    return(change_tvl)
+
+#st.write(protocolDatast.sort_values(by=sel, ascending=False)["tvlPct"] == did)
+#st.write(protocolDatast.sort_values(by=sel, ascending=False).insert(pd.DataFrame(calculate_tvl(protocolDatast.sort_values(by=sel, ascending=False), start_date_str, end_date_str), columns = ["tvlPct"])))
+
+remember = protocolDatast.sort_values(by=sel, ascending=False)
+
+remember["tvlPct1D"] = calculate_tvl(protocolDatast.sort_values(by=sel, ascending=False),0,1)
+remember["tvlPct7D"] = calculate_tvl(protocolDatast.sort_values(by=sel, ascending=False),0,7)
+remember["tvlPct30D"] = calculate_tvl(protocolDatast.sort_values(by=sel, ascending=False),0,30)
+
+
+st.write(remember)
+
 st.write(protocolDatast.sort_values(by=sel, ascending=False))
+
 
 st.caption('Then we can check by specific pool and date')
 
@@ -143,4 +176,6 @@ for i in range(new_pool.shape[0]):
 
 
             change_in_second_column_rounded = round(change_in_second_column * 100, 2)
-            st.write(f"Change in {fi} over the selected time range is  {change_in_second_column_rounded:.2f}% for {new_pool.values[i][1]} {new_pool.values[i][0]} {new_pool.values[i][2]}")
+            #st.write(f"Change in {fi} over the selected time range is  {change_in_second_column_rounded:.2f}% for {new_pool.values[i][1]} {new_pool.values[i][0]} {new_pool.values[i][2]}")
+
+
