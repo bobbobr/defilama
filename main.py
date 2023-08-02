@@ -22,8 +22,11 @@ selected_projects = st.multiselect("Choose project", protocolDatast.project.uniq
 
 protocolDatast = protocolDatast[protocolDatast['chain'].isin(selected_chains)]
 protocolDatast = protocolDatast[protocolDatast['project'].isin(selected_projects)]
-tv = st.slider("Choose TVL", protocolDatast.sort_values(by=["tvlUsd"], ascending=False).tvlUsd.iloc[-1],protocolDatast.sort_values(by=["tvlUsd"], ascending=False).tvlUsd.iloc[0])
-protocolDatast = protocolDatast.loc[ (protocolDatast['tvlUsd'] >= tv) ]
+if (len(selected_chains) & len(selected_projects)) !=0:
+    tv = st.slider("Choose TVL", protocolDatast.sort_values(by=["tvlUsd"], ascending=False).tvlUsd.iloc[-1],protocolDatast.sort_values(by=["tvlUsd"], ascending=False).tvlUsd.iloc[0])
+    protocolDatast = protocolDatast.loc[ (protocolDatast['tvlUsd'] >= tv) ]
+else:
+    st.write("You should choose chains and projects")
 
 
 st.title('DeFi Lama analysis')
@@ -87,6 +90,7 @@ if not filtered_data[fi].notna().any():
     st.write("No data available for the selected time range.")
 
 else:
+    
     # Calculate the change in the second column over the selected time range
     change_in_second_column =  filtered_data[fi].iloc[-1] / filtered_data[fi].iloc[0] - 1
 
