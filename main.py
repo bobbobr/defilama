@@ -72,6 +72,7 @@ def calculate_tvl(data, start, end):
         except (requests.exceptions.HTTPError, json.JSONDecodeError) as e:
             st.write(f"Error: {e}")
             change_tvl.append(0)  # Append 0 in case of an error
+        time.sleep(1)
     return change_tvl
 
 #st.write(protocolDatast.sort_values(by=sel, ascending=False)["tvlPct"] == did)
