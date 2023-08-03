@@ -12,11 +12,26 @@ protocols = requests.get(baseUrl +'/pools')
 #stablecoin = st.checkbox('Only stablecoins')
 
 
+
+
 protocolData = pd.DataFrame.from_dict(protocols.json()["data"])
 protocolDatast = protocolData.loc[(protocolData['stablecoin'] == True)]
 
 selected_chains = st.multiselect("Choose chain", protocolDatast.chain.unique())
+all_chains = st.checkbox("Select all chains")
+
+
+if all_chains:
+    selected_chains = protocolDatast.chain.unique().tolist()
+
 selected_projects = st.multiselect("Choose project", protocolDatast.project.unique())
+
+all_projects = st.checkbox("Select all projects")
+
+
+if all_projects:
+    selected_projects = protocolDatast.project.unique().tolist()
+
 
 
 protocolDatast = protocolDatast[protocolDatast['chain'].isin(selected_chains)]
@@ -25,7 +40,6 @@ if (len(selected_chains) !=0) & (len(selected_projects) != 0):
     tv = st.number_input("Insert a TVL")
     #tv = st.slider("Choose minimum TVL", protocolDatast.sort_values(by=["tvlUsd"], ascending=False).tvlUsd.iloc[-1],protocolDatast.sort_values(by=["tvlUsd"], ascending=False).tvlUsd.iloc[0])
     protocolDatast = protocolDatast.loc[(protocolDatast['tvlUsd'] >= tv)]
-
     apy = st.slider("Choose minimum APY", protocolDatast.sort_values(by=["apy"], ascending=False).apy.iloc[-1],protocolDatast.sort_values(by=["apy"], ascending=False).apy.iloc[0])
     protocolDatast = protocolDatast.loc[(protocolDatast['apy'] >= apy)]
 else:
@@ -67,6 +81,9 @@ remember["tvlPct30D"] = calculate_tvl(protocolDatast.sort_values(by=sel, ascendi
 
 
 st.write(remember)
+
+st.write(protocolDatast.sort_values(by=sel, ascending=False))
+
 
 st.caption('Then we can check by specific pool and date')
 
@@ -169,6 +186,11 @@ for i in range(new_pool.shape[0]):
 
             # Calculate the change in the second column over the selected time range
             change_in_second_column = filtered_data[fi].iloc[-1] / filtered_data[fi].iloc[0] - 1
+
+
+
+            change_in_second_column_rounded = round(change_in_second_column * 100, 2)
+            #st.write(f"Change in {fi} over the selected time range is  {change_in_second_column_rounded:.2f}% for {new_pool.values[i][1]} {new_pool.values[i][0]} {new_pool.values[i][2]}")
 
 
 
