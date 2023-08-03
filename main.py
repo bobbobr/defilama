@@ -169,12 +169,12 @@ new_pool = new_pool.loc[new_pool['project'].isin(selected_projects2)]
 
 st.write(new_pool)
 
-baseUrl3 = "https://yields.llama.fi/chart/"
 
 fi = st.selectbox("Optiosssns", new_pool.columns[3:7])
 
 
 for i in range(new_pool.shape[0]):
+        baseUrl3 = "https://yields.llama.fi/chart/"
         df3 = requests.get(baseUrl3 + new_pool.values[i][8])
         da = pd.DataFrame.from_dict(df3.json()["data"])
         filtered_data = da[(da["timestamp"] >= start_date_str) & (da["timestamp"] <= end_date_str)]
@@ -186,11 +186,6 @@ for i in range(new_pool.shape[0]):
 
             # Calculate the change in the second column over the selected time range
             change_in_second_column = filtered_data[fi].iloc[-1] / filtered_data[fi].iloc[0] - 1
-
-
-
-            change_in_second_column_rounded = round(change_in_second_column * 100, 2)
-            #st.write(f"Change in {fi} over the selected time range is  {change_in_second_column_rounded:.2f}% for {new_pool.values[i][1]} {new_pool.values[i][0]} {new_pool.values[i][2]}")
 
 
 
