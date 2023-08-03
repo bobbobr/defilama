@@ -1,6 +1,7 @@
 import pandas as pd
 import requests
 import streamlit as st
+import json
 
 #baseUrl = 'https://api.llama.fi'
 baseUrl = "https://yields.llama.fi"
