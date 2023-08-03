@@ -59,16 +59,19 @@ def calculate_tvl(data, start, end):
     for i in range(data.pool.shape[0]):
         baseUrl3 = "https://yields.llama.fi/chart/"
         df3 = requests.get(baseUrl3 + data.pool.iloc[i])
-        da = pd.DataFrame.from_dict(df3.json()["data"])
-        if len(da["tvlUsd"].iloc[:])>(end-start):
-            #filtered_data = da[(da["timestamp"] >= start) & (da["timestamp"] <= end)]
+        try:
+            df3.raise_for_status()  # Check for any request errors
+            da = pd.DataFrame.from_dict(df3.json()["data"])
+            if len(da) > (end - start):
                 # Calculate the change in the second column over the selected time range
-            change_in_second_column = da["tvlUsd"].iloc[end] / da["tvlUsd"].iloc[start] - 1
-            change_tvl.append(round(change_in_second_column * 100, 2))
-        else:
-            change_tvl.append(0)
-
-    return(change_tvl)
+                change_in_second_column = da["tvlUsd"].iloc[end] / da["tvlUsd"].iloc[start] - 1
+                change_tvl.append(round(change_in_second_column * 100, 2))
+            else:
+                change_tvl.append(0)
+        except (requests.exceptions.HTTPError, json.JSONDecodeError) as e:
+            st.write(f"Error: {e}")
+            change_tvl.append(0)  # Append 0 in case of an error
+    return change_tvl
 
 #st.write(protocolDatast.sort_values(by=sel, ascending=False)["tvlPct"] == did)
 #st.write(protocolDatast.sort_values(by=sel, ascending=False).insert(pd.DataFrame(calculate_tvl(protocolDatast.sort_values(by=sel, ascending=False), start_date_str, end_date_str), columns = ["tvlPct"])))
@@ -191,4 +194,5 @@ for i in range(new_pool.shape[0]):
 
             change_in_second_column_rounded = round(change_in_second_column * 100, 2)
             #st.write(f"Change in {fi} over the selected time range is  {change_in_second_column_rounded:.2f}% for {new_pool.values[i][1]} {new_pool.values[i][0]} {new_pool.values[i][2]}")
+
 
