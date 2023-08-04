@@ -41,7 +41,8 @@ if (len(selected_chains) !=0) & (len(selected_projects) != 0):
     tv = st.number_input("Insert a TVL")
     #tv = st.slider("Choose minimum TVL", protocolDatast.sort_values(by=["tvlUsd"], ascending=False).tvlUsd.iloc[-1],protocolDatast.sort_values(by=["tvlUsd"], ascending=False).tvlUsd.iloc[0])
     protocolDatast = protocolDatast.loc[(protocolDatast['tvlUsd'] >= tv)]
-    apy = st.slider("Choose minimum APY", protocolDatast.sort_values(by=["apy"], ascending=False).apy.iloc[-1],protocolDatast.sort_values(by=["apy"], ascending=False).apy.iloc[0])
+    apy = st.number_input("Insert an APY")
+    #apy = st.slider("Choose minimum APY", protocolDatast.sort_values(by=["apy"], ascending=False).apy.iloc[-1],protocolDatast.sort_values(by=["apy"], ascending=False).apy.iloc[0])
     protocolDatast = protocolDatast.loc[(protocolDatast['apy'] >= apy)]
 else:
     st.write("You should choose chains and projects")
