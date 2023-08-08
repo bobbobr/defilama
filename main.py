@@ -1,7 +1,8 @@
-import pandas as pd
+iimport pandas as pd
 import requests
 import streamlit as st
 import json
+import time
 
 #baseUrl = 'https://api.llama.fi'
 baseUrl = "https://yields.llama.fi"
@@ -57,28 +58,40 @@ with show_data:
 sel = st.selectbox("Options", protocolDatast.columns[3:])
 
 
+chart_data_cache = {}
 
-def get_chart_data(pool_id):
+start_time = time.time()
+
+def fetch_chart_data(pool_id):
+    if pool_id in chart_data_cache:
+        return chart_data_cache[pool_id]
+
     baseUrl3 = "https://yields.llama.fi/chart/"
-    df3 = requests.get(baseUrl3 + pool_id)
+    url = baseUrl3 + pool_id
     try:
-        df3.raise_for_status()  # Check for any request errors
-        return pd.DataFrame.from_dict(df3.json()["data"])
+        response = requests.get(url)
+        time.sleep(1/7)
+        response.raise_for_status()  # Check for any request errors
+        data = response.json()["data"]
+        chart_data_cache[pool_id] = pd.DataFrame.from_dict(data)
+        return chart_data_cache[pool_id]
     except (requests.exceptions.HTTPError, json.JSONDecodeError) as e:
         st.write(f"Error: {e}")
         return None
 
 def calculate_tvl(data, start, end):
     change_tvl = []
-    for i in range(data.pool.shape[0]):
-        pool_id = data.pool.iloc[i]
-        da = get_chart_data(pool_id)
+
+    # Calculate TVL change for each pool based on the stored chart data
+    for pool_id in data.pool:
+        da = fetch_chart_data(pool_id)
         if da is not None and len(da) > (end - start):
             # Calculate the change in the second column over the selected time range
             change_in_second_column = da["tvlUsd"].iloc[end] / da["tvlUsd"].iloc[start] - 1
             change_tvl.append(round(change_in_second_column * 100, 2))
         else:
             change_tvl.append(0)
+
     return change_tvl
 
 remember = protocolDatast.sort_values(by=sel, ascending=False)
@@ -86,14 +99,35 @@ remember["tvlPct1D"] = calculate_tvl(protocolDatast.sort_values(by=sel, ascendin
 remember["tvlPct7D"] = calculate_tvl(protocolDatast.sort_values(by=sel, ascending=False), 0, 7)
 remember["tvlPct30D"] = calculate_tvl(protocolDatast.sort_values(by=sel, ascending=False), 0, 30)
 
+end_time = time.time()
+
+st.write(end_time-start_time)
 
 #st.write(protocolDatast.sort_values(by=sel, ascending=False)["tvlPct"] == did)
 #st.write(protocolDatast.sort_values(by=sel, ascending=False).insert(pd.DataFrame(calculate_tvl(protocolDatast.sort_values(by=sel, ascending=False), start_date_str, end_date_str), columns = ["tvlPct"])))
 
+unique_symbols = set()
 
+for i in remember['symbol'].iloc[:].str.split('-'):
+    unique_symbols.update(i)
+
+st.write(unique_symbols)
+
+remember['symbol'] = remember['symbol'].str.split('-')
 st.write(remember)
 
-st.write(protocolDatast.sort_values(by=sel, ascending=False))
+selected_symbols  = st.multiselect("Symbols", unique_symbols)
+
+def contains_all_symbols(symbols_list):
+    return all(symbol in symbols_list for symbol in selected_symbols)
+
+# Фильтруем данные по функции contains_all_symbols
+filtered_data = remember[remember['symbol'].apply(contains_all_symbols)]
+
+
+st.write(filtered_data)
+
+#st.write(protocolDatast.sort_values(by=sel, ascending=False))
 
 
 st.caption('Then we can check by specific pool and date')
@@ -179,29 +213,5 @@ selected_projects2 = st.multiselect("Choose project", protocolDatast.project.uni
 new_pool = new_pool.loc[new_pool['project'].isin(selected_projects2)]
 
 st.write(new_pool)
-
-
-fi = st.selectbox("Optiosssns", new_pool.columns[3:7])
-
-
-for i in range(new_pool.shape[0]):
-        baseUrl3 = "https://yields.llama.fi/chart/"
-        df3 = requests.get(baseUrl3 + new_pool.values[i][8])
-        da = pd.DataFrame.from_dict(df3.json()["data"])
-        filtered_data = da[(da["timestamp"] >= start_date_str) & (da["timestamp"] <= end_date_str)]
-
-        if not filtered_data[fi].notna().any():
-            st.write("No data available for the selected time range based on your option.")
-            break
-        else:
-
-            # Calculate the change in the second column over the selected time range
-            change_in_second_column = filtered_data[fi].iloc[-1] / filtered_data[fi].iloc[0] - 1
-
-
-
-            change_in_second_column_rounded = round(change_in_second_column * 100, 2)
-            #st.write(f"Change in {fi} over the selected time range is  {change_in_second_column_rounded:.2f}% for {new_pool.values[i][1]} {new_pool.values[i][0]} {new_pool.values[i][2]}")
-
 
 
