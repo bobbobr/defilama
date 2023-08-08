@@ -59,7 +59,7 @@ def fetch_chart_data(pool_id):
     url = baseUrl3 + pool_id
     try:
         response = requests.get(url)
-        time.sleep(1/2)
+        time.sleep(1)
         response.raise_for_status()
         data = response.json()["data"]
         chart_data_cache[pool_id] = pd.DataFrame.from_dict(data)
