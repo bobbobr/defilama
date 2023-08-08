@@ -3,9 +3,6 @@ import requests
 import streamlit as st
 import json
 import time
-import asyncio
-from throttler import throttle
-
 
 baseUrl = "https://yields.llama.fi"
 
@@ -54,34 +51,35 @@ chart_data_cache = {}
 
 start_time = time.time()
 
-@throttle(rate_limit=500, period=60.0)
-async def fetch_chart_data(pool_id):
+def fetch_chart_data(pool_id):
+    if pool_id in chart_data_cache:
+        return chart_data_cache[pool_id]
+
     baseUrl3 = "https://yields.llama.fi/chart/"
     url = baseUrl3 + pool_id
     try:
         response = requests.get(url)
-        response.raise_for_status()  # Check for any request errors
+        time.sleep(1/5)
+        response.raise_for_status()
         data = response.json()["data"]
-        return pd.DataFrame.from_dict(data)
+        chart_data_cache[pool_id] = pd.DataFrame.from_dict(data)
+        return chart_data_cache[pool_id]
     except (requests.exceptions.HTTPError, json.JSONDecodeError) as e:
-        print(f"Error: {e}")
+        st.write(f"Error: {e}")
         return None
 
-async def calculate_tvl(data, start, end):
+def calculate_tvl(data, start, end):
     change_tvl = []
 
-    # Calculate TVL change for each pool based on the stored chart data
     for pool_id in data.pool:
-        da = await fetch_chart_data(pool_id)
+        da = fetch_chart_data(pool_id)
         if da is not None and len(da) > (end - start):
-            # Calculate the change in the second column over the selected time range
             change_in_second_column = da["tvlUsd"].iloc[end] / da["tvlUsd"].iloc[start] - 1
             change_tvl.append(round(change_in_second_column * 100, 2))
         else:
             change_tvl.append(0)
 
     return change_tvl
-
 
 remember = protocolDatast.sort_values(by=sel, ascending=False)
 remember["tvlPct1D"] = calculate_tvl(protocolDatast.sort_values(by=sel, ascending=False), 0, 1)
@@ -137,4 +135,3 @@ selected_projects2 = st.multiselect("Choose project", protocolDatast.project.uni
 new_pool = new_pool.loc[new_pool['project'].isin(selected_projects2)]
 
 st.write(new_pool)
-
