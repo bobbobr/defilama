@@ -106,6 +106,20 @@ filtered_data = remember[remember['symbol'].apply(lambda symbols_list: all(symbo
 
 st.write(filtered_data)
 
+@st.cache_data
+def convert_df(df):
+    # IMPORTANT: Cache the conversion to prevent computation on every rerun
+    return df.to_csv().encode('utf-8')
+
+csv = convert_df(filtered_data)
+
+st.download_button(
+    label="Download data as CSV",
+    data=csv,
+    file_name='df.csv',
+    mime='text/csv',
+)
+
 
 
 st.caption('Then we can check by specific pool and date')
