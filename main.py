@@ -65,7 +65,7 @@ def fetch_chart_data(pool_id):
         chart_data_cache[pool_id] = pd.DataFrame.from_dict(data)
         return chart_data_cache[pool_id]
     except (requests.exceptions.HTTPError, json.JSONDecodeError) as e:
-        st.write(f"Error: {e}")
+        #st.write(f"Error: {e}")
         return None
 
 def calculate_tvl(data, start, end):
